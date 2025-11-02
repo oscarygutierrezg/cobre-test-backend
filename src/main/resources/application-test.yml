@@ -1,0 +1,102 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: ms-accounts-test
+
+  jackson:
+    default-property-inclusion: non_null
+    property-naming-strategy: SNAKE_CASE
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: cbmm
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    schemas: cbmm
+    default-schema: cbmm
+
+  kafka:
+    # Este valor será sobreescrito por System.setProperty en BaseContainerTest
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: ms-accounts-test-consumer-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    topics:
+      cbmm-events: cbmm-events-test
+
+  data:
+    redis:
+      # Estos valores serán sobreescritos por System.setProperty en BaseContainerTest
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+      password: ""
+
+# Retry configuration for tests (faster retries for testing)
+retry:
+  optimistic-locking:
+    max-attempts: 3
+    initial-delay: 50
+    multiplier: 1.5
+    max-delay: 500
+
+# Metrics and tracing for tests
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  metrics:
+    export:
+      otlp:
+        enabled: true
+  tracing:
+    enabled: true
+  otlp:
+    tracing:
+      # Este valor será sobreescrito por System.setProperty en BaseContainerTest
+      endpoint: http://localhost:4318/v1/traces
+    metrics:
+      # Este valor será sobreescrito por System.setProperty en BaseContainerTest
+      endpoint: http://localhost:4318/v1/metrics
+
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.springframework: warn
+    co.cobre.cbmm: debug
+    org.testcontainers: info
+
+
+database:
+    username: test
+    password: test
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/cbmm_test

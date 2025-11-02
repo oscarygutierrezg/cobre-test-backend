@@ -1,0 +1,98 @@
+server:
+  port: ${SERVER_PORT}
+
+spring:
+  application:
+    name: ms-accounts
+
+
+  jackson:
+    default-property-inclusion: non_null
+    property-naming-strategy: SNAKE_CASE
+
+  jpa:
+    database-platform: ${DB_HIBERNATE_DIALECT}
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: cbmm
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: '0'
+    locations: classpath:/db/migration
+    schemas: cbmm
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      timeout: 2000ms
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: ms-accounts-consumer-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      max-poll-records: 10
+      properties:
+        spring.json.trusted.packages: "*"
+    topics:
+      cbmm-events: cbmm-events-topic
+
+# Retry configuration for optimistic locking failures
+retry:
+  optimistic-locking:
+    max-attempts: ${RETRY_MAX_ATTEMPTS}
+    initial-delay: ${RETRY_INITIAL_DELAY}
+    multiplier: ${RETRY_MULTIPLIER}
+    max-delay: ${RETRY_MAX_DELAY}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      otlp:
+        enabled: ${OTEL_METRICS_ENABLED}
+        url: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+        step: 60s
+        batch-size: 1000
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        cbmm.accounts.errors.duration: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${ENVIRONMENT:local}
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.apache.coyote.http11.Http11Processor: WARN
+    org.apache.tomcat: WARN
+    org.apache.catalina: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+database:
+  server: ${DB_SERVER}
+  name: ${DB_NAME}
+  username: ${DB_USERNAME}
+  password: ${DB_PASSWORD}
+  driver-class-name: ${DB_DRIVER_CLASS_NAME}
+  url: ${DB_JDBC_URL_PREFIX}://${database.server}/${database.name}
