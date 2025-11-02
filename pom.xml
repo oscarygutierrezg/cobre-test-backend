@@ -93,13 +93,6 @@
             <artifactId>spring-aspects</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.sipios</groupId>
-            <artifactId>spring-search</artifactId>
-            <version>0.3.0</version>
-        </dependency>
-
-
         <!-- Hibernate -->
         <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-envers -->
         <dependency>
